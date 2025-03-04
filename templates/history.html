@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="history-container">
+    <h1>Query History</h1>
+    <div class="back-button">
+        <a href="/">← Back to Chat</a>
+    </div>
+    {% for entry in history %}
+    <div class="history-entry">
+        <div class="prompt-section">
+            <strong>Prompt:</strong>
+            <p>{{ entry.prompt }}</p>
+        </div>
+        <div class="response-section">
+            <strong>Response:</strong>
+            <p>{{ entry.response }}</p>
+        </div>
+        <div class="timestamp">
+            {{ entry.timestamp }}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

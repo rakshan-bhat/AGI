@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="chat-container">
+    <h1>GPT-2 Chat Interface</h1>
+    
+    <form method="POST" action="/generate">
+        <textarea name="prompt" placeholder="Enter your prompt..."></textarea>
+        <button type="submit">Generate</button>
+    </form>
+
+    {% if response %}
+    <div class="response-box">
+        <h3>Response:</h3>
+        <p>{{ response }}</p>
+    </div>
+    {% endif %}
+
+    <div class="history-section">
+        <h2>History</h2>
+        {% for entry in history %}
+        <div class="history-item">
+            <strong>Prompt:</strong> {{ entry.prompt }}<br>
+            <strong>Response:</strong> {{ entry.response }}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
