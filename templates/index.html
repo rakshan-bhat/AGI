@@ -1,28 +1,89 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="chat-container">
-    <h1>GPT-2 Chat Interface</h1>
-    
-    <form method="POST" action="/generate">
-        <textarea name="prompt" placeholder="Enter your prompt..."></textarea>
-        <button type="submit">Generate</button>
-    </form>
-
-    {% if response %}
-    <div class="response-box">
-        <h3>Response:</h3>
-        <p>{{ response }}</p>
-    </div>
-    {% endif %}
-
-    <div class="history-section">
-        <h2>History</h2>
+    <div class="chat-messages" id="chat-messages">
+        <div class="welcome-message">
+            <div class="ai-icon">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <h2>Hello! I'm your AI assistant.</h2>
+                <p>How can I help you today?</p>
+            </div>
+        </div>
+        
         {% for entry in history %}
-        <div class="history-item">
-            <strong>Prompt:</strong> {{ entry.prompt }}<br>
-            <strong>Response:</strong> {{ entry.response }}
+        <div class="message user-message">
+            <div class="user-icon">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="message-content">
+                <p>{{ entry.prompt }}</p>
+                <span class="timestamp">{{ entry.timestamp }}</span>
+            </div>
+        </div>
+        <div class="message ai-message">
+            <div class="ai-icon">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <p>{{ entry.response }}</p>
+            </div>
         </div>
         {% endfor %}
+        
+        {% if current_response and current_response not in history|map(attribute='response') %}
+        <div class="message ai-message">
+            <div class="ai-icon">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <p>{{ current_response }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="input-container">
+        <form method="POST" action="/generate" id="prompt-form">
+            <div class="input-wrapper">
+                <textarea 
+                    name="prompt" 
+                    id="prompt-input" 
+                    placeholder="Ask me anything..." 
+                    rows="1"
+                    autofocus
+                ></textarea>
+                <button type="submit" class="submit-btn">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
+
+<script>
+    // Auto-resize textarea as user types
+    const textarea = document.getElementById('prompt-input');
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+    
+    // Scroll to bottom of chat on page load
+    window.onload = function() {
+        const chatMessages = document.getElementById('chat-messages');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Add 'typing' class to submit button when user is typing
+    textarea.addEventListener('input', function() {
+        const submitBtn = document.querySelector('.submit-btn');
+        if (this.value.trim().length > 0) {
+            submitBtn.classList.add('active');
+        } else {
+            submitBtn.classList.remove('active');
+        }
+    });
+</script>
 {% endblock %}

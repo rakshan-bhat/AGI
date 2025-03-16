@@ -2,24 +2,40 @@
 
 {% block content %}
 <div class="history-container">
-    <h1>Query History</h1>
-    <div class="back-button">
-        <a href="/">← Back to Chat</a>
+    <div class="history-header">
+        <h1>Conversation History</h1>
+        <a href="/" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Chat</a>
     </div>
-    {% for entry in history %}
-    <div class="history-entry">
-        <div class="prompt-section">
-            <strong>Prompt:</strong>
-            <p>{{ entry.prompt }}</p>
+    
+    {% if history %}
+        {% for entry in history %}
+        <div class="history-entry">
+            <div class="history-meta">
+                <span class="history-date">{{ entry.timestamp }}</span>
+            </div>
+            <div class="history-message user">
+                <div class="user-icon">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="message-content">
+                    <p>{{ entry.prompt }}</p>
+                </div>
+            </div>
+            <div class="history-message ai">
+                <div class="ai-icon">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <p>{{ entry.response }}</p>
+                </div>
+            </div>
         </div>
-        <div class="response-section">
-            <strong>Response:</strong>
-            <p>{{ entry.response }}</p>
+        {% endfor %}
+    {% else %}
+        <div class="empty-history">
+            <i class="fa-solid fa-inbox"></i>
+            <p>No conversation history yet</p>
         </div>
-        <div class="timestamp">
-            {{ entry.timestamp }}
-        </div>
-    </div>
-    {% endfor %}
+    {% endif %}
 </div>
 {% endblock %}

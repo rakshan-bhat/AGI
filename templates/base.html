@@ -1,12 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>GPT-2 Chat Interface</title>
-    <link rel="stylesheet" href="{{ url_for('static', 'styles.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>General-Purpose AI Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="container">
-        {% block content %}{% endblock %}
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <i class="fa-solid fa-robot"></i>
+                <h1>Rakshan's AI bot</h1>
+            </div>
+            <nav>
+                <a href="/" class="nav-link active"><i class="fa-solid fa-message"></i> Chat</a>
+                <form action="/clear_history" method="POST" class="inline-form">
+                    <button type="submit" class="btn-clear"><i class="fa-solid fa-trash"></i> Clear Chat</button>
+                </form>
+            </nav>
+        </header>
+        
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+        
+        <footer>
+            <p>Powered by TinyLlama-1.1B-Chat-v1.0</p>
+        </footer>
     </div>
 </body>
 </html>
