@@ -8,7 +8,7 @@
     --border-color: #e5e5e5;
     --message-user-bg: #f7f7f8;
     --message-ai-bg: #ffffff;
-    --shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -38,6 +38,7 @@ header {
     padding: 1rem 2rem;
     background-color: var(--card-bg);
     border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
 }
 
 .logo {
@@ -59,7 +60,7 @@ header {
 nav {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.5rem;
 }
 
 .nav-link, .btn-clear {
@@ -71,7 +72,7 @@ nav {
     align-items: center;
     gap: 0.5rem;
     font-size: 0.875rem;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
 }
 
 .nav-link:hover, .btn-clear:hover {
@@ -107,9 +108,9 @@ main {
 .chat-container {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 130px);
+    height: calc(100vh - 150px);
     background-color: var(--card-bg);
-    border-radius: 8px;
+    border-radius: 12px;
     box-shadow: var(--shadow);
     overflow: hidden;
 }
@@ -118,16 +119,19 @@ main {
     flex: 1;
     overflow-y: auto;
     padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
 .welcome-message {
     display: flex;
     align-items: flex-start;
     gap: 1rem;
-    padding: 1rem;
+    padding: 1.5rem;
     background-color: rgba(16, 163, 127, 0.1);
-    border-radius: 8px;
-    margin-bottom: 2rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
 }
 
 .welcome-message h2 {
@@ -139,25 +143,26 @@ main {
 .message {
     display: flex;
     gap: 1rem;
-    margin-bottom: 1.5rem;
-    transition: opacity 0.3s;
+    max-width: 100%;
 }
 
 .user-message {
     background-color: var(--message-user-bg);
-    border-radius: 8px;
-    padding: 1.25rem;
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
 }
 
 .ai-message {
     background-color: var(--message-ai-bg);
-    border-radius: 8px;
-    padding: 1.25rem;
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
 }
 
 .user-icon, .ai-icon {
-    width: 35px;
-    height: 35px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -177,6 +182,9 @@ main {
 
 .message-content {
     flex: 1;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
 }
 
 .message-content p {
@@ -202,7 +210,7 @@ main {
     align-items: flex-end;
     position: relative;
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 12px;
     transition: border-color 0.2s;
     background-color: white;
     box-shadow: var(--shadow);
@@ -210,18 +218,20 @@ main {
 
 .input-wrapper:focus-within {
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(16, 163, 127, 0.2);
 }
 
 textarea {
     flex: 1;
     border: none;
-    padding: 0.75rem 1rem;
+    padding: 0.9rem 1rem;
     font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
     resize: none;
     outline: none;
     max-height: 200px;
-    border-radius: 8px;
+    border-radius: 12px;
+    line-height: 1.5;
 }
 
 .submit-btn {
@@ -251,7 +261,7 @@ textarea {
 /* History page */
 .history-container {
     background-color: var(--card-bg);
-    border-radius: 8px;
+    border-radius: 12px;
     box-shadow: var(--shadow);
     padding: 1.5rem;
 }
@@ -272,6 +282,13 @@ textarea {
     text-decoration: none;
     color: var(--primary-color);
     font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.back-btn:hover {
+    background-color: rgba(16, 163, 127, 0.1);
 }
 
 .history-entry {
@@ -282,6 +299,8 @@ textarea {
 
 .history-entry:last-child {
     border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
 }
 
 .history-meta {
@@ -300,7 +319,8 @@ textarea {
     gap: 1rem;
     margin-bottom: 1rem;
     padding: 1rem;
-    border-radius: 8px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
 }
 
 .history-message.user {
@@ -315,11 +335,20 @@ textarea {
     text-align: center;
     padding: 3rem 0;
     color: #6e6e80;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .empty-history i {
     font-size: 3rem;
     margin-bottom: 1rem;
+    color: var(--border-color);
+}
+
+.mt-4 {
+    margin-top: 1rem;
 }
 
 /* Footer */
@@ -332,16 +361,37 @@ footer {
     border-top: 1px solid var(--border-color);
 }
 
+/* Loading animation */
+.fa-spin {
+    animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     header {
-        padding: 0.75rem;
-        flex-direction: column;
-        gap: 0.5rem;
+        padding: 0.75rem 1rem;
     }
     
     .logo h1 {
         font-size: 1rem;
+    }
+    
+    nav {
+        gap: 0.25rem;
+    }
+    
+    .nav-link, .btn-clear {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
     }
     
     .chat-container {
@@ -350,5 +400,31 @@ footer {
     
     .input-container {
         padding: 0.75rem;
+    }
+    
+    .history-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    header {
+        flex-direction: column;
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+    
+    main {
+        padding: 0.5rem;
+    }
+    
+    .chat-container {
+        height: calc(100vh - 180px);
+    }
+    
+    .welcome-message {
+        padding: 1rem;
     }
 }

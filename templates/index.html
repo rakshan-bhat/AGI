@@ -1,47 +1,39 @@
 {% extends "base.html" %}
+
 {% block content %}
 <div class="chat-container">
     <div class="chat-messages" id="chat-messages">
+        {% if not history %}
         <div class="welcome-message">
             <div class="ai-icon">
                 <i class="fa-solid fa-robot"></i>
             </div>
             <div class="message-content">
                 <h2>Hello! I'm your AI assistant.</h2>
-                <p>How can I help you today?</p>
+                <p>I'm powered by TinyLlama-1.1B-Chat. How can I help you today?</p>
             </div>
         </div>
+        {% endif %}
         
         {% for entry in history %}
-        <div class="message user-message">
+        <div class="message">
             <div class="user-icon">
                 <i class="fa-solid fa-user"></i>
             </div>
-            <div class="message-content">
+            <div class="message-content user-message">
                 <p>{{ entry.prompt }}</p>
                 <span class="timestamp">{{ entry.timestamp }}</span>
             </div>
         </div>
-        <div class="message ai-message">
+        <div class="message">
             <div class="ai-icon">
                 <i class="fa-solid fa-robot"></i>
             </div>
-            <div class="message-content">
+            <div class="message-content ai-message">
                 <p>{{ entry.response }}</p>
             </div>
         </div>
         {% endfor %}
-        
-        {% if current_response and current_response not in history|map(attribute='response') %}
-        <div class="message ai-message">
-            <div class="ai-icon">
-                <i class="fa-solid fa-robot"></i>
-            </div>
-            <div class="message-content">
-                <p>{{ current_response }}</p>
-            </div>
-        </div>
-        {% endif %}
     </div>
     
     <div class="input-container">
@@ -53,8 +45,9 @@
                     placeholder="Ask me anything..." 
                     rows="1"
                     autofocus
+                    required
                 ></textarea>
-                <button type="submit" class="submit-btn">
+                <button type="submit" class="submit-btn" id="submit-btn" disabled>
                     <i class="fa-solid fa-paper-plane"></i>
                 </button>
             </div>
@@ -65,9 +58,22 @@
 <script>
     // Auto-resize textarea as user types
     const textarea = document.getElementById('prompt-input');
+    const submitBtn = document.getElementById('submit-btn');
+    
     textarea.addEventListener('input', function() {
+        // Auto-resize textarea
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
+        
+        // Enable/disable submit button based on content
+        submitBtn.disabled = this.value.trim().length === 0;
+    });
+    
+    // Form submission
+    document.getElementById('prompt-form').addEventListener('submit', function() {
+        // Disable submit button and show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
     });
     
     // Scroll to bottom of chat on page load
@@ -75,15 +81,5 @@
         const chatMessages = document.getElementById('chat-messages');
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
-    
-    // Add 'typing' class to submit button when user is typing
-    textarea.addEventListener('input', function() {
-        const submitBtn = document.querySelector('.submit-btn');
-        if (this.value.trim().length > 0) {
-            submitBtn.classList.add('active');
-        } else {
-            submitBtn.classList.remove('active');
-        }
-    });
 </script>
 {% endblock %}
