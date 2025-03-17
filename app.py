@@ -1,9 +1,8 @@
 from flask import Flask, render_template, request, session, redirect, jsonify
-from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 from dotenv import load_dotenv
 import os
 from datetime import datetime
-import torch
+import requests
 
 # Load environment variables
 load_dotenv()
@@ -11,45 +10,38 @@ load_dotenv()
 # Initialize Flask app and secret key
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default-secret-key')
+HF_API_TOKEN = os.getenv('HF_API_TOKEN')
 
-# Initialize model with better parameters
-model_name = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-# Check if GPU is available, but don't use device_map
-if torch.cuda.is_available():
-    device = torch.device("cuda")
-else:
-    device = torch.device("cpu")
-
-model = AutoModelForCausalLM.from_pretrained(
-    model_name, 
-    torch_dtype=torch.float16  # Use float16 for better performance
-)
-model = model.to(device)
-
-# Create a custom pipeline with better settings
-def generate_text(prompt, max_new_tokens=100):
+# Use Hugging Face Inference API instead of loading model directly
+def generate_text(prompt, max_new_tokens=250):
+    API_URL = "https://api-inference.huggingface.co/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+    headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
+    
     # Format the prompt properly for chat models
     formatted_prompt = f"<human>: {prompt}\n<assistant>:"
     
-    # Generate with better parameters
-    inputs = tokenizer(formatted_prompt, return_tensors="pt").to(device)
-    outputs = model.generate(
-        inputs.input_ids,
-        max_new_tokens=max_new_tokens,
-        temperature=0.7,
-        top_p=0.9,
-        top_k=50,
-        repetition_penalty=1.2,
-        do_sample=True,
-        pad_token_id=tokenizer.eos_token_id
-    )
+    payload = {
+        "inputs": formatted_prompt,
+        "parameters": {
+            "max_new_tokens": max_new_tokens,
+            "temperature": 0.7,
+            "top_p": 0.9,
+            "top_k": 50,
+            "repetition_penalty": 1.2,
+            "do_sample": True
+        }
+    }
     
-    # Decode the response and remove the prompt
-    full_response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    assistant_response = full_response.split("<assistant>:")[-1].strip()
+    response = requests.post(API_URL, headers=headers, json=payload)
     
-    return assistant_response
+    if response.status_code == 200:
+        # Extract the generated text
+        result = response.json()[0]["generated_text"]
+        # Extract just the assistant's response
+        assistant_response = result.split("<assistant>:")[-1].strip()
+        return assistant_response
+    else:
+        return f"Error: {response.status_code}, {response.text}"
 
 @app.before_request
 def before_request():
@@ -67,7 +59,7 @@ def generate():
     prompt = request.form['prompt']
     
     try:
-        # Generate text using the improved function
+        # Generate text using the API
         generated_text = generate_text(prompt, max_new_tokens=150)
         
         # Store current response
@@ -92,5 +84,5 @@ def clear_history():
     session.modified = True
     return redirect('/')
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# For Vercel serverless
+app = app
