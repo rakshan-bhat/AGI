@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect, jsonify
+from flask import Flask, render_template, request, session, redirect, jsonify, url_for
 from dotenv import load_dotenv
 import os
 from datetime import datetime
@@ -8,12 +8,14 @@ import requests
 load_dotenv()
 
 # Initialize Flask app and secret key
-app = Flask(__name__)
+app = Flask(__name__, 
+            template_folder='templates',
+            static_folder='static')
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default-secret-key')
-HF_API_TOKEN = os.getenv('HF_API_TOKEN')
+HF_API_TOKEN = os.getenv('HUGGINGFACE_API_TOKEN')
 
-# Use Hugging Face Inference API instead of loading model directly
-def generate_text(prompt, max_new_tokens=250):
+# Use Hugging Face Inference API with error handling
+def generate_text(prompt, max_new_tokens=100):
     API_URL = "https://api-inference.huggingface.co/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
     headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
     
@@ -32,16 +34,27 @@ def generate_text(prompt, max_new_tokens=250):
         }
     }
     
-    response = requests.post(API_URL, headers=headers, json=payload)
-    
-    if response.status_code == 200:
-        # Extract the generated text
-        result = response.json()[0]["generated_text"]
-        # Extract just the assistant's response
-        assistant_response = result.split("<assistant>:")[-1].strip()
-        return assistant_response
-    else:
-        return f"Error: {response.status_code}, {response.text}"
+    try:
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=10)
+        
+        if response.status_code == 200:
+            # Extract the generated text
+            result = response.json()[0]["generated_text"]
+            # Extract just the assistant's response
+            assistant_response = result.split("<assistant>:")[-1].strip()
+            return {"status": "success", "response": assistant_response}
+        else:
+            # Fallback for API errors
+            return {
+                "status": "error", 
+                "response": "I'm currently experiencing difficulties with my AI service. Please try again in a moment."
+            }
+    except Exception as e:
+        # Fallback for connection errors
+        return {
+            "status": "error",
+            "response": "I'm temporarily unable to process your request. Let's try again shortly."
+        }
 
 @app.before_request
 def before_request():
@@ -52,15 +65,28 @@ def before_request():
 
 @app.route('/')
 def home():
-    return render_template('index.html', history=session['history'], current_response=session['current_response'])
+    return render_template('index.html', 
+                           history=session.get('history', []), 
+                           current_response=session.get('current_response', ""))
+
+@app.route('/history')
+def history():
+    return render_template('history.html', 
+                           history=session.get('history', []))
 
 @app.route('/generate', methods=['POST'])
 def generate():
-    prompt = request.form['prompt']
+    prompt = request.form.get('prompt', '')
+    
+    if not prompt:
+        return redirect(url_for('home'))
     
     try:
         # Generate text using the API
-        generated_text = generate_text(prompt, max_new_tokens=150)
+        result = generate_text(prompt, max_new_tokens=150)
+        
+        # Get the response
+        generated_text = result["response"]
         
         # Store current response
         session['current_response'] = generated_text
@@ -73,16 +99,21 @@ def generate():
         })
         session.modified = True
     except Exception as e:
-        session['current_response'] = f"Error: {str(e)}"
+        # Fallback for any other errors
+        session['current_response'] = "Sorry, I encountered an error processing your request."
     
-    return redirect('/')
+    return redirect(url_for('home'))
 
 @app.route('/clear_history', methods=['POST'])
 def clear_history():
     session['history'] = []
     session['current_response'] = ""
     session.modified = True
-    return redirect('/')
+    return redirect(url_for('home'))
 
 # For Vercel serverless
 app = app
+
+# For local development
+if __name__ == '__main__':
+    app.run(debug=True)
