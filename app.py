@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect
+from flask import Flask, render_template, request, session, redirect, jsonify
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 from dotenv import load_dotenv
 import os
