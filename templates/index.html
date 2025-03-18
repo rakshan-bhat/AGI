@@ -42,7 +42,7 @@
                 <textarea 
                     name="prompt" 
                     id="prompt-input" 
-                    placeholder="Ask me anything..." 
+                    placeholder="Ask me anything... (Press Enter to send, Shift+Enter for new line)" 
                     rows="1"
                     autofocus
                     required
@@ -56,10 +56,12 @@
 </div>
 
 <script>
-    // Auto-resize textarea as user types
+    // Get elements
     const textarea = document.getElementById('prompt-input');
     const submitBtn = document.getElementById('submit-btn');
+    const form = document.getElementById('prompt-form');
     
+    // Auto-resize textarea as user types
     textarea.addEventListener('input', function() {
         // Auto-resize textarea
         this.style.height = 'auto';
@@ -69,8 +71,31 @@
         submitBtn.disabled = this.value.trim().length === 0;
     });
     
+    // Handle Enter and Shift+Enter key presses
+    textarea.addEventListener('keydown', function(e) {
+        // Check if the key pressed is Enter (key code 13)
+        if (e.key === 'Enter') {
+            // If Shift key is also pressed, allow new line
+            if (e.shiftKey) {
+                // Default behavior (new line) continues
+                return;
+            } else {
+                // Prevent the default action (new line)
+                e.preventDefault();
+                
+                // Only submit if there's text in the textarea and button is not disabled
+                if (this.value.trim().length > 0 && !submitBtn.disabled) {
+                    // Disable submit button and show loading state
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                    form.submit();
+                }
+            }
+        }
+    });
+    
     // Form submission
-    document.getElementById('prompt-form').addEventListener('submit', function() {
+    form.addEventListener('submit', function() {
         // Disable submit button and show loading state
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
