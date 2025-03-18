@@ -13,7 +13,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
 
 # Hugging Face API settings
-HF_API_TOKEN = os.environ.get('HUGGINGFACE_API_TOKEN')
+HF_API_TOKEN = os.environ.get('HF_API_TOKEN')
 HF_MODEL = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 
 def generate_response(prompt, max_tokens=150):
