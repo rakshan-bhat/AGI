@@ -16,24 +16,25 @@ app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'dev-secret-key-change-in-pr
 HF_API_TOKEN = os.environ.get('HF_API_TOKEN')
 HF_MODEL = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 
-def generate_response(prompt, max_tokens=150):
-    """Generate a response using the Hugging Face Inference API."""
-    API_URL = f"https://api-inference.huggingface.co/models/{HF_MODEL}"
+def generate_text(prompt, max_new_tokens=100):
+    API_URL = "https://api-inference.huggingface.co/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
     headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
     
-    # Format prompt for chat model
+    # Format the prompt properly for chat models
     formatted_prompt = f"<human>: {prompt}\n<assistant>:"
     
-    # Limit prompt size
+    # Limit prompt size to avoid large payload errors
     if len(formatted_prompt) > 1000:
         formatted_prompt = formatted_prompt[:997] + "..."
     
     payload = {
         "inputs": formatted_prompt,
         "parameters": {
-            "max_new_tokens": max_tokens,
+            "max_new_tokens": max_new_tokens,
             "temperature": 0.7,
             "top_p": 0.9,
+            "top_k": 50,
+            "repetition_penalty": 1.2,
             "do_sample": True
         }
     }
@@ -42,17 +43,27 @@ def generate_response(prompt, max_tokens=150):
         response = requests.post(API_URL, headers=headers, json=payload, timeout=30)
         
         if response.status_code == 200:
+            # Extract the generated text
             result = response.json()[0]["generated_text"]
-            # Extract just the assistant's response
-            assistant_response = result.split("<assistant>:")[-1].strip()
-            return assistant_response
+            
+            # Extract just the assistant's response, more carefully
+            assistant_part = result.split("<assistant>:")
+            if len(assistant_part) > 1:
+                # Get only the last part after <assistant>:
+                assistant_response = assistant_part[-1].strip()
+                
+                # Further clean up - if there are any "human:" or "example" markers, cut before them
+                cutoff_markers = ["<human>:", "human:", "example", "Example"]
+                for marker in cutoff_markers:
+                    if marker in assistant_response:
+                        assistant_response = assistant_response.split(marker)[0].strip()
+                
+                return assistant_response
+            return "Sorry, I couldn't generate a proper response."
         else:
-            logger.error(f"API error: {response.status_code}, {response.text[:200]}")
-            return f"Sorry, I'm having trouble generating a response (Error {response.status_code})."
+            return f"Sorry, I'm having trouble generating a response right now (Error {response.status_code})."
     except Exception as e:
-        logger.error(f"Exception in generate_response: {str(e)}")
-        return f"I encountered an error: {str(e)}. Please try again."
-
+        return f"I encountered an error: {str(e)}."
 @app.route('/')
 def home():
     """Render the home page with chat interface."""
@@ -73,7 +84,7 @@ def generate():
             return redirect('/')
         
         # Generate response
-        response = generate_response(prompt)
+        response = generate_text(prompt)
         
         # Update session history
         history = session.get('history', [])
